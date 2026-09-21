@@ -239,7 +239,13 @@ class XML {
   listChildren() {
     const arr = [];
     for (let i = 0; i < this.DOM.childNodes.length; i++) {
-      arr.push(this.DOM.childNodes[i].nodeName);
+      const node = this.DOM.childNodes[i];
+      // The line breaks and indentation between tags are parsed as text
+      // nodes. They are not content, so leave them out.
+      if (node.nodeName === '#text' && node.nodeValue.trim() === '') {
+        continue;
+      }
+      arr.push(node.nodeName);
     }
     return arr;
   }

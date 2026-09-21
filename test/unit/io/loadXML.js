@@ -1,6 +1,6 @@
 import { mockP5, mockP5Prototype, httpMock } from '../../js/mocks';
 import files from '../../../src/io/files';
-import xml from '../../../src/io/p5.XML';
+import xml, { XML } from '../../../src/io/p5.XML';
 
 suite('loadXML', function () {
   const invalidFile = '404file';
@@ -54,6 +54,20 @@ suite('loadXML', function () {
     assert.isObject(xml);
     const children = xml.getChildren('book');
     assert.lengthOf(children, 12);
+  });
+
+  test('listChildren() leaves out the whitespace between elements', async () => {
+    const xml = await mockP5Prototype.loadXML(validFile);
+    assert.deepEqual(xml.listChildren(), new Array(12).fill('book'));
+  });
+
+  test('listChildren() keeps text and comment nodes with content', () => {
+    const doc = new DOMParser().parseFromString(
+      '<a>\n  <b/>\n  text<!-- note --><c/>\n</a>',
+      'application/xml'
+    );
+    const node = new XML(doc.documentElement);
+    assert.deepEqual(node.listChildren(), ['b', '#text', '#comment', 'c']);
   });
 
   test('passes an object with correct data to success callback', async () => {
