@@ -57,24 +57,29 @@ class TableRow {
    * }
    */
   set(column, value) {
-    // if typeof column is string, use .obj
+    let cPos;
     if (typeof column === 'string') {
-      const cPos = this.table.columns.indexOf(column); // index of columnID
-      if (cPos >= 0) {
-        this.obj[column] = value;
-        this.arr[cPos] = value;
-      } else {
+      cPos = this.table.columns.indexOf(column); // index of columnID
+      if (cPos < 0) {
         throw new Error(`This table has no column named "${column}"`);
       }
     } else {
-      // if typeof column is number, use .arr
-      if (column < this.table.columns.length) {
-        this.arr[column] = value;
-        const cTitle = this.table.columns[column];
-        this.obj[cTitle] = value;
-      } else {
+      // A table read without a header row has no column titles, so its width
+      // is the width of its rows.
+      const width = Math.max(this.table.columns.length, this.arr.length);
+      if (column >= width) {
         throw new Error(`Column #${column} is out of the range of this table`);
       }
+      cPos = column;
+    }
+
+    this.arr[cPos] = value;
+    // The getters read .obj by column index; the title key is kept for the
+    // p5.Table methods that read .obj by column title.
+    this.obj[cPos] = value;
+    const cTitle = this.table.columns[cPos];
+    if (cTitle !== undefined) {
+      this.obj[cTitle] = value;
     }
   }
 
