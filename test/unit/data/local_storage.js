@@ -113,6 +113,32 @@ suite('local storage', function () {
     });
   });
 
+  suite('should reject invalid input without storing it', function () {
+    beforeEach(function () {
+      mockP5._friendlyError.mockClear();
+    });
+
+    test('a non-string key reports an error instead of throwing', function () {
+      assert.doesNotThrow(() => mockP5Prototype.storeItem(42, 'hello'));
+      assert.equal(mockP5._friendlyError.mock.calls.length, 1);
+      assert.isNull(localStorage.getItem('42'));
+      assert.isNull(localStorage.getItem('42' + hardCodedTypeID));
+    });
+
+    test('a key ending in p5TypeID is not stored', function () {
+      mockP5Prototype.storeItem('fake' + hardCodedTypeID, 'hello');
+      assert.equal(mockP5._friendlyError.mock.calls.length, 1);
+      assert.isNull(localStorage.getItem('fake' + hardCodedTypeID));
+    });
+
+    test('an undefined value is not stored as the string "undefined"', function () {
+      mockP5Prototype.storeItem('myUndefined', undefined);
+      assert.equal(mockP5._friendlyError.mock.calls.length, 1);
+      assert.isNull(mockP5Prototype.getItem('myUndefined'));
+      assert.isNull(localStorage.getItem('myUndefined' + hardCodedTypeID));
+    });
+  });
+
   suite('should be able to clear all items at once', function () {
     test('should remove all items set by storeItem()', function () {
       localStorage.setItem('extra', 'stuff');
