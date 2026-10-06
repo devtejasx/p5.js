@@ -283,6 +283,47 @@ suite('Environment', function () {
     });
   });
 
+  suite('p5.prototype.getURLParams', function () {
+    let originalURL;
+
+    beforeEach(function () {
+      originalURL = location.href;
+    });
+
+    afterEach(function () {
+      history.replaceState(null, '', originalURL);
+    });
+
+    function paramsFor(search) {
+      history.replaceState(null, '', location.pathname + search);
+      return myp5.getURLParams();
+    }
+
+    test('parses key-value pairs', function () {
+      assert.deepEqual(paramsFor('?year=2014&month=May&day=15'), {
+        year: '2014',
+        month: 'May',
+        day: '15'
+      });
+    });
+
+    test('a parameter without a value does not swallow the next one', function () {
+      assert.deepEqual(paramsFor('?debug&x=1'), { debug: '', x: '1' });
+      assert.deepEqual(paramsFor('?a=1&b'), { a: '1', b: '' });
+    });
+
+    test('decodes percent-escapes and plus signs', function () {
+      assert.deepEqual(paramsFor('?name=Hello%20World&q=a+b'), {
+        name: 'Hello World',
+        q: 'a b'
+      });
+    });
+
+    test('returns an empty object without a query string', function () {
+      assert.deepEqual(paramsFor(''), {});
+    });
+  });
+
   suite('Canvas dimensions', function () {
     test('p5.prototype.width', function () {
       myp5.createCanvas(20, 30);

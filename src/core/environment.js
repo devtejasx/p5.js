@@ -1029,7 +1029,11 @@ function environment(p5, fn, lifecycles) {
    *
    * For example, calling `getURLParams()` in a sketch hosted at the URL
    * `https://p5js.org?year=2014&month=May&day=15` returns
-   * `{ year: 2014, month: 'May', day: 15 }`.
+   * `{ year: '2014', month: 'May', day: '15' }`.
+   *
+   * Values are always strings. They are decoded, so `%20` and `+` both
+   * become a space, and a parameter without a value, such as `debug` in
+   * `?debug&x=1`, is returned as an empty string.
    *
    * @method getURLParams
    * @return {Object} URL params
@@ -1056,16 +1060,10 @@ function environment(p5, fn, lifecycles) {
    * This example does not render anything.
    */
   fn.getURLParams = function () {
-    const re = /[?&]([^&=]+)(?:[&=])([^&=]+)/gim;
-    let m;
-    const v = {};
-    while ((m = re.exec(location.search)) != null) {
-      if (m.index === re.lastIndex) {
-        re.lastIndex++;
-      }
-      v[m[1]] = m[2];
-    }
-    return v;
+    // URLSearchParams decodes values (including `+` as a space) and reports a
+    // parameter without a value as an empty string. A repeated key keeps its
+    // last value.
+    return Object.fromEntries(new URLSearchParams(location.search));
   };
 
   /**
