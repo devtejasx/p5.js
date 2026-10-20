@@ -2072,8 +2072,11 @@ function buildStrandsCallback(p5, ast, scope) {
     !fn ||
     (fn.type !== 'FunctionExpression' && fn.type !== 'ArrowFunctionExpression')
   ) {
-    console.log(escodegen.generate(ast));
-    throw new Error('Could not parse p5.strands function!');
+    throw new Error(
+      'Could not parse p5.strands function! Expected a function, such as ' +
+      '`() => { ... }`, but got ' +
+      (fn ? `a ${fn.type}` : 'more than one expression') + '.'
+    );
   }
   const params = fn.params.map(param => escodegen.generate(param));
   let paramVals, paramNames;
@@ -2096,10 +2099,10 @@ function buildStrandsCallback(p5, ast, scope) {
     // calls to p5 static methods.
     return () => internalStrandsCallback(p5, ...paramVals);
   } catch (e) {
-    console.error(e);
-    console.log(paramNames);
-    console.log(body);
-    throw new Error('Error transpiling p5.strands callback!');
+    throw new Error(
+      `Error transpiling p5.strands callback! ${e.message}`,
+      { cause: e }
+    );
   }
 }
 
