@@ -403,6 +403,14 @@ function creatingReading(p5, fn) {
    * @param  {p5.Color}     color
    * @return {p5.Color}
    */
+  // The range of an RGB channel in the current color mode, so that red() and
+  // friends read a color in the range of the sketch or graphics they are
+  // called on.
+  function rgbChannelMax(renderer, color, i) {
+    const mode = [RGB, RGBP3].includes(color.mode) ? color.mode : RGB;
+    return renderer.states.colorMaxes[mode][i];
+  }
+
   fn.color = function (...args) {
     // p5._validateParameters('color', args);
     if (args[0] instanceof Color) {
@@ -569,7 +577,8 @@ function creatingReading(p5, fn) {
   fn.red = function (c) {
     // p5._validateParameters('red', arguments);
     // Get current red max
-    return this.color(c)._getRed();
+    const col = this.color(c);
+    return col._getRed(rgbChannelMax(this._renderer, col, 0));
   };
 
   /**
@@ -722,7 +731,8 @@ function creatingReading(p5, fn) {
   fn.green = function (c) {
     // p5._validateParameters('green', arguments);
     // Get current green max
-    return this.color(c)._getGreen();
+    const col = this.color(c);
+    return col._getGreen(rgbChannelMax(this._renderer, col, 1));
   };
 
   /**
@@ -875,7 +885,8 @@ function creatingReading(p5, fn) {
   fn.blue = function (c) {
     // p5._validateParameters('blue', arguments);
     // Get current blue max
-    return this.color(c)._getBlue();
+    const col = this.color(c);
+    return col._getBlue(rgbChannelMax(this._renderer, col, 2));
   };
 
   /**
@@ -996,7 +1007,9 @@ function creatingReading(p5, fn) {
   fn.alpha = function (c) {
     // p5._validateParameters('alpha', arguments);
     // Get current alpha max
-    return this.color(c)._getAlpha();
+    const col = this.color(c);
+    const mode = this._renderer.states.colorMaxes[col.mode] ? col.mode : RGB;
+    return col._getAlpha(this._renderer.states.colorMaxes[mode][3]);
   };
 
   /**

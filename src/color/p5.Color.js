@@ -1097,82 +1097,29 @@ function color(p5, fn, lifecycles) {
   p5.Color.addColorMode(OKLAB, OKLab);
   p5.Color.addColorMode(OKLCH, OKLCHSpace);
 
+  // The setters take the range of the sketch that is set up most recently,
+  // as documented for setRed() and friends. They are decorated once rather
+  // than once per sketch: per-sketch wrappers on the shared prototype kept
+  // every removed sketch alive.
+  let rangeInstance;
+  const setMethods = ['Red', 'Green', 'Blue', 'Alpha'];
+  for (let i in setMethods) {
+    const method = setMethods[i];
+    const setCopy = p5.Color.prototype['set' + method];
+    p5.Color.prototype['set' + method] = function (newval, max) {
+      max = max || rangeInstance?._renderer?.states?.colorMaxes?.[RGB][i];
+      return setCopy.call(this, newval, max);
+    };
+  }
+
   lifecycles.presetup = function () {
-    const pInst = this;
+    rangeInstance = this;
+  };
 
-    // Decorate set methods
-    const setMethods = ['Red', 'Green', 'Blue', 'Alpha'];
-    for (let i in setMethods) {
-      const method = setMethods[i];
-      const setCopy = p5.Color.prototype['set' + method];
-      p5.Color.prototype['set' + method] = function (newval, max) {
-        max = max || pInst?._renderer?.states?.colorMaxes?.[RGB][i];
-        return setCopy.call(this, newval, max);
-      };
+  lifecycles.remove = function () {
+    if (rangeInstance === this) {
+      rangeInstance = undefined;
     }
-
-    // Decorate get methods
-    function decorateGet(channel, modes) {
-      const getCopy = p5.Color.prototype['_get' + channel];
-      p5.Color.prototype['_get' + channel] = function (max) {
-        if (Object.keys(modes).includes(this.mode)) {
-          max =
-            max ||
-            pInst?._renderer?.states?.colorMaxes?.[this.mode][modes[this.mode]];
-        } else {
-          const defaultMode = Object.keys(modes)[0];
-          max =
-            max ||
-            pInst?._renderer?.states?.colorMaxes?.[defaultMode][
-              modes[defaultMode]
-            ];
-        }
-
-        return getCopy.call(this, max);
-      };
-    }
-
-    decorateGet('Red', {
-      [RGB]: 0,
-      [RGBP3]: 0
-    });
-    decorateGet('Green', {
-      [RGB]: 1,
-      [RGBP3]: 1
-    });
-    decorateGet('Blue', {
-      [RGB]: 2,
-      [RGBP3]: 2
-    });
-    decorateGet('Alpha', {
-      [RGB]: 3,
-      [RGBP3]: 3,
-      [HSB]: 3,
-      [HSL]: 3,
-      [HWB]: 3,
-      [LAB]: 3,
-      [LCH]: 3,
-      [OKLAB]: 3,
-      [OKLCH]: 3
-    });
-
-    decorateGet('Hue', {
-      [HSL]: 0,
-      [HSB]: 0,
-      [HWB]: 0,
-      [LCH]: 2,
-      [OKLCH]: 2
-    });
-    decorateGet('Saturation', {
-      [HSL]: 1,
-      [HSB]: 1
-    });
-    decorateGet('Brightness', {
-      [HSB]: 2
-    });
-    decorateGet('Lightness', {
-      [HSL]: 2
-    });
   };
 }
 

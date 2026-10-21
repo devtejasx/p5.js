@@ -13,15 +13,33 @@ suite('color/CreatingReading', function () {
   var fromColor;
   var toColor;
 
-  suite.todo('p5.prototype.alpha', function () {
-    beforeEach(function () {
+  suite('p5.prototype.red, green, blue, alpha', function () {
+    afterEach(function () {
       mockP5Prototype.colorMode(mockP5Prototype.RGB);
     });
-  });
 
-  suite.todo('p5.prototype.red, green, blue', function () {
-    beforeEach(function () {
-      mockP5Prototype.colorMode(mockP5Prototype.RGB);
+    test('should read the color in the current color mode range', function () {
+      mockP5Prototype.colorMode(mockP5Prototype.RGB, 10);
+      const c = mockP5Prototype.color(5, 2.5, 7.5, 5);
+      assert.deepEqual(
+        [
+          mockP5Prototype.red(c),
+          mockP5Prototype.green(c),
+          mockP5Prototype.blue(c),
+          mockP5Prototype.alpha(c)
+        ],
+        [5, 2.5, 7.5, 5]
+      );
+    });
+
+    test('should not wrap p5.Color methods again for each sketch', function () {
+      const lifecycles = {};
+      p5Color(mockP5, mockP5Prototype, lifecycles);
+      const methods = () =>
+        ['setRed', '_getRed', '_getAlpha'].map(k => mockP5.Color.prototype[k]);
+      const before = methods();
+      lifecycles.presetup.call(mockP5Prototype);
+      assert.deepEqual(methods(), before);
     });
   });
 
