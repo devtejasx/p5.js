@@ -133,6 +133,32 @@ suite('String functions', function () {
       const result = mockP5Prototype.splitTokens(str, regexp);
       assert.equal(result.length, 4);
     });
+
+    test('should split on whitespace by default', function () {
+      const result = mockP5Prototype.splitTokens('a b\tc\nd');
+      assert.deepEqual(result, ['a', 'b', 'c', 'd']);
+    });
+
+    test('should split on square brackets', function () {
+      const result = mockP5Prototype.splitTokens('a[b]c', '[]');
+      assert.deepEqual(result, ['a', 'b', 'c']);
+    });
+
+    test('should treat a caret delimiter literally', function () {
+      const result = mockP5Prototype.splitTokens('a^b', '^');
+      assert.deepEqual(result, ['a', 'b']);
+    });
+
+    test('should treat a backslash delimiter literally', function () {
+      const result = mockP5Prototype.splitTokens('a\\b', '\\');
+      assert.deepEqual(result, ['a', 'b']);
+    });
+
+    test('should not form a range from a hyphen between delimiters', function () {
+      const result = mockP5Prototype.splitTokens('a-b,c;d', ',-;');
+      assert.deepEqual(result, ['a', 'b', 'c', 'd']);
+      assert.deepEqual(mockP5Prototype.splitTokens('a1b', ',-;'), ['a1b']);
+    });
   });
 
   suite('p5.prototype.shuffle', function () {

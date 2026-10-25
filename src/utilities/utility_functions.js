@@ -606,23 +606,10 @@ function utilityFunctions(p5, fn) {
     // p5._validateParameters('splitTokens', arguments);
     let d;
     if (typeof delims !== 'undefined') {
-      let str = delims;
-      const sqc = /\]/g.exec(str);
-      let sqo = /\[/g.exec(str);
-      if (sqo && sqc) {
-        str = str.slice(0, sqc.index) + str.slice(sqc.index + 1);
-        sqo = /\[/g.exec(str);
-        str = str.slice(0, sqo.index) + str.slice(sqo.index + 1);
-        d = new RegExp(`[\\[${str}\\]]`, 'g');
-      } else if (sqc) {
-        str = str.slice(0, sqc.index) + str.slice(sqc.index + 1);
-        d = new RegExp(`[${str}\\]]`, 'g');
-      } else if (sqo) {
-        str = str.slice(0, sqo.index) + str.slice(sqo.index + 1);
-        d = new RegExp(`[${str}\\[]`, 'g');
-      } else {
-        d = new RegExp(`[${str}]`, 'g');
-      }
+      // Escape the characters that are special inside a character class,
+      // so every delimiter character matches literally.
+      const str = String(delims).replace(/[\\\[\]^-]/g, '\\$&');
+      d = new RegExp(`[${str}]`, 'g');
     } else {
       d = /\s/g;
     }
